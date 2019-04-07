@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
-import {
-  FaChevronDown,
-  FaPlus,
-  FaQuestionCircle,
-  FaTrash
-} from 'react-icons/fa';
+import { FaPlus, FaQuestionCircle, FaTrash } from 'react-icons/fa';
 import Column from './Column';
 import Row from './Row';
 import roles from '../roles';
 import BlockButton from './BlockButton';
 import getRoleById from '../utils/getRoleById';
-import isMobile from '../utils/isMobile';
 import getAlignmentColor from '../utils/getAlignmentColor';
 
 export default function PlayerListItem(props) {
@@ -106,7 +100,6 @@ export default function PlayerListItem(props) {
             {player.role.alignment}
           </AlignmentLabel>
         )}
-        {isMobile && <FaChevronDown />}
       </TopRow>
 
       <SecondRow>
