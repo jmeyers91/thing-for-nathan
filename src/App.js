@@ -1,108 +1,302 @@
 import React, { useState } from 'react';
-import './App.css';
-
-let id = 1;
-const NONE = 'NONE';
-const getId = () => id++;
-const roles = [
-  'villager',
-  'werewolf',
-  'seer',
-  'detective',
-  'my bff phil',
-];
+import styled, { keyframes } from 'styled-components';
+import { FaTrash, FaDice, FaUserPlus, FaMoon } from 'react-icons/fa';
+import SA from 'sweetalert2';
+import sampleSize from 'lodash/sampleSize';
+import * as fantastical from 'fantastical';
+import Column from './components/Column';
+import Row from './components/Row';
+import BlockButton from './components/BlockButton';
+import getId from './utils/getId';
+import roles from './roles';
+import PlayerListItem from './components/PlayerListItem';
+import getAlignmentColor from './utils/getAlignmentColor';
 
 export default function App() {
   const [players, setPlayers] = useState([]);
+  const [changed, setChanged] = useState(false);
+  const [helpRole, setHelpRole] = useState(null);
+  const [showNightHelper, setShowNightHelper] = useState(false);
 
-  function handleAddPlayer() {
-    setPlayers(players.concat({
-      id: getId(),
-      name: '',
-      role: NONE,
-      status: '',
-      evil: false,
-      dead: false,
-    }));
-  }
+  const helpDrawerOpen = !!helpRole || showNightHelper;
+  const canUseNightHelper =
+    players.length > 0 &&
+    players.every(player => {
+      return !!(player.role && player.name.length > 0);
+    });
 
-  function handleDeletePlayer(player) {
-    if(window.confirm('They die now?')) {
-      setPlayers(players.filter(other => other.id !== player.id));
+  async function handleResetClick() {
+    const confirmResult = await SA.fire({
+      title: 'Are you sure?',
+      text: 'This will delete all players.',
+      showCancelButton: true
+    });
+
+    if (confirmResult.value) {
+      setPlayers([]);
+      setChanged(false);
     }
   }
 
+  async function handleRandomizeClick() {
+    if (changed) {
+      const confirmResult = await SA.fire({
+        title: 'Are you sure?',
+        text: 'This will clear all your changes.',
+        showCancelButton: true
+      });
+      if (!confirmResult.value) {
+        return;
+      }
+    }
+    const count = 6;
+    const playerRoles = sampleSize(roles, count);
+    const newPlayers = playerRoles.map(role => ({
+      id: getId(),
+      name: fantastical.species.human(),
+      role,
+      statuses: [],
+      dead: false
+    }));
+    setPlayers(newPlayers);
+    setChanged(false);
+  }
+
+  function handleAddUserClick() {
+    setPlayers([
+      ...players,
+      {
+        id: getId(),
+        name: fantastical.species.human(),
+        role: null,
+        statuses: [],
+        dead: false
+      }
+    ]);
+  }
+
   function handlePlayerChange(player) {
-    setPlayers(
-      players.map(other => other.id === player.id 
-        ? player
-        : other
-      )
-    );
+    if (!changed) {
+      setChanged(true);
+    }
+    setPlayers(players.map(other => (other.id === player.id ? player : other)));
+  }
+
+  async function handlePlayerDelete(player) {
+    if (!changed) {
+      setChanged(true);
+    }
+    const confirmResult = await SA.fire({
+      title: 'Are you sure?',
+      text: `Delete player ${player.name}?`,
+      showCancelButton: true
+    });
+    if (!confirmResult.value) {
+      return;
+    }
+    setPlayers(players.filter(other => other.id !== player.id));
+  }
+
+  function handleNightClick() {
+    setShowNightHelper(true);
+  }
+
+  function handleViewRoleClick(player) {
+    setHelpRole(player.role);
+  }
+
+  function closeHelpDrawer() {
+    setHelpRole(null);
+    setShowNightHelper(false);
+  }
+
+  function renderHelpDrawer() {
+    if (!helpDrawerOpen) return <HelpDrawer open={false} />;
+
+    if (helpRole) {
+      return (
+        <HelpDrawer open>
+          <HelpDrawerCloseButton onClick={closeHelpDrawer}>
+            {'\u00D7'}
+          </HelpDrawerCloseButton>
+          <RoleHelp role={helpRole} />
+        </HelpDrawer>
+      );
+    }
+
+    if (showNightHelper) {
+      return (
+        <HelpDrawer open>
+          <HelpDrawerCloseButton onClick={closeHelpDrawer}>
+            {'\u00D7'}
+          </HelpDrawerCloseButton>
+          <NightHelperDrawer players={players} onClose={closeHelpDrawer} />
+        </HelpDrawer>
+      );
+    }
   }
 
   return (
-    <div className="App">
-      <Header class="row" onAddPlayer={handleAddPlayer}/>
-      <PlayerList>
-        {players.map(player =>
-          <PlayerListItem key={player.id} player={player} onChange={handlePlayerChange} onDelete={handleDeletePlayer}/>  
-        )}
-      </PlayerList>
-    </div>
-  );
-};
-
-function PlayerListItem({ player, onChange, onDelete, ...rest }) {
-  const {
-    name,
-    role,
-    status,
-    dead,
-    evil,
-  } = player;
-
-  const handleChange = (key, value) => onChange && onChange({ ...player, [key]: value });
-  const handleNameChange = event => handleChange('name', event.currentTarget.value);
-  const handleRoleChange = event => handleChange('role', event.currentTarget.value);
-  const handleStatusChange = event => handleChange('status', event.currentTarget.value);
-  const handleEvilChange = () => handleChange('evil', !evil);
-  const handleDeadChange = () => handleChange('dead', !dead);
-
-  return (
-    <li {...rest} className="PlayerListItem row">
-      <input placeholder="Name" value={name} onChange={handleNameChange}/>
-      <select value={role || NONE} onChange={handleRoleChange}>
-        <option disabled value={NONE}>Role</option>
-        {roles.map(role =>
-          <option key={role} value={role}>{role}</option>
-        )}
-      </select>
-      <input placeholder="Status" value={status} onChange={handleStatusChange}/>
-      <label>
-        Dead:
-        <input type="checkbox" checked={dead} onChange={handleDeadChange}/>
-      </label>
-      <label>
-        Evil:
-        <input type="checkbox" checked={evil} onChange={handleEvilChange}/>
-      </label>
-      <button onClick={() => onDelete(player)}>Delete</button>
-    </li>
+    <Root>
+      {renderHelpDrawer()}
+      {helpDrawerOpen && <HelpDrawerOverlay onClick={closeHelpDrawer} />}
+      <Header>
+        <BlockButton onClick={handleResetClick}>
+          <FaTrash size={36} />
+        </BlockButton>
+        <BlockButton onClick={handleRandomizeClick}>
+          <FaDice size={40} />
+        </BlockButton>
+        <BlockButton onClick={handleAddUserClick}>
+          <FaUserPlus size={40} />
+        </BlockButton>
+        <BlockButton disabled={!canUseNightHelper} onClick={handleNightClick}>
+          <FaMoon size={36} />
+        </BlockButton>
+      </Header>
+      <Content>
+        {players.map(player => (
+          <PlayerListItem
+            key={player.id}
+            player={player}
+            onPlayerChange={handlePlayerChange}
+            onPlayerDelete={handlePlayerDelete}
+            onRoleClick={handleViewRoleClick}
+          />
+        ))}
+      </Content>
+    </Root>
   );
 }
 
-function PlayerList(props) {
+const Root = styled(Column)`
+  height: 100vh;
+  background-color: #333;
+  color: white;
+  overflow: hidden;
+`;
+
+const Header = styled(Row)`
+  border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+  ${BlockButton} {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    flex: 1;
+  }
+`;
+
+const Content = styled(Column)`
+  flex: 1;
+  overflow: auto;
+  padding: 20px 0 20px 0;
+`;
+
+const HelpDrawer = styled(Column)`
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 0 20px 0 20px;
+  height: 100vh;
+  overflow: auto;
+  width: 80vw;
+  max-width: 450px;
+  background-color: #333;
+  box-shadow: 3px 10px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+  transition: transform 0.4s;
+  transform: ${props =>
+    props.open ? `translate(0, 0)` : `translate(-100%, 0)`};
+
+  h1 {
+    text-align: center;
+  }
+`;
+
+const HelpDrawerOverlay = styled('div')`
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.3);
+  animation-duration: 0.4s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  cursor: pointer;
+  animation-name: ${keyframes`
+    from {
+      opacity: 0;
+    } to {
+      opacity: 1;
+    }
+  `};
+`;
+
+const HelpDrawerCloseButton = styled(BlockButton)`
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  font-size: 32px;
+  line-height: 30px;
+`;
+
+const DarkBlockButton = styled(BlockButton)`
+  background-color: ${props => (props.highlighted ? '#559' : '#555')};
+  transition: background-color 0.2s;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  &:active {
+    background-color: #222;
+  }
+`;
+
+function NightHelperDrawer({ players, onClose }) {
+  const [playerIndex, setPlayerIndex] = useState(0);
+  const sortedPlayers = players.sort(sortPlayersByRoleOrder);
+  const player = sortedPlayers[playerIndex];
+  const isLastPlayer = playerIndex >= players.length - 1;
+
+  function handleNextClick() {
+    setPlayerIndex(playerIndex + 1);
+  }
+
   return (
-    <ul {...props} className="PlayerList col"/>
+    <React.Fragment>
+      {player && <h1 style={{ paddingTop: 10 }}>Wake up {player.name}</h1>}
+      {player && player.role && <RoleHelp hideName role={player.role} />}
+      <div style={{ flex: 1 }} />
+      <DarkBlockButton
+        onClick={isLastPlayer ? onClose : handleNextClick}
+        highlighted={isLastPlayer}
+        style={{ marginBottom: 50 }}
+      >
+        {isLastPlayer ? 'End Night' : 'Next Player'}
+      </DarkBlockButton>
+    </React.Fragment>
   );
 }
 
-function Header(props) {
-  const { onAddPlayer, ...rest } = props;
+function RoleHelp({ role, hideName }) {
   return (
-    <div {...rest} class="Header">
-      <button onClick={onAddPlayer}>Add Player</button>
-    </div>
+    <React.Fragment>
+      {hideName ? '' : <h1 style={{ color: role.lightColor }}>{role.name}</h1>}
+      <h2>Alignment</h2>
+      <p style={{ color: getAlignmentColor(role.alignment) }}>
+        {role.alignment}
+      </p>
+      <h2>Ability</h2>
+      <p>{role.ability}</p>
+      <h2>Example</h2>
+      <p>{role.example}</p>
+    </React.Fragment>
   );
+}
+
+function sortPlayersByRoleOrder(a, b) {
+  return roles.indexOf(a.role) - roles.indexOf(b.role);
 }
