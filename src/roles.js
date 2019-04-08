@@ -1,4 +1,4 @@
-export default [
+const roles = [
   {
     name: 'Washerwoman',
     alignment: 'Townsfolk',
@@ -175,6 +175,17 @@ export default [
   darkColor: getDarkColor(i, length),
   ...role
 }));
+
+export default roles;
+
+export const townsfolkRoles = roles.filter(
+  role => role.alignment === 'Townsfolk'
+);
+export const outsiderRoles = roles.filter(
+  role => role.alignment === 'Outsider'
+);
+export const minionRoles = roles.filter(role => role.alignment === 'Minion');
+export const demonRoles = roles.filter(role => role.alignment === 'Demon');
 
 function getLightColor(index, length) {
   const hue = (360 * index) / length;

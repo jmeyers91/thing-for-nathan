@@ -3,7 +3,6 @@ import styled, { keyframes } from 'styled-components';
 import { FaTrash, FaDice, FaUserPlus, FaMoon } from 'react-icons/fa';
 import SA from 'sweetalert2';
 import sampleSize from 'lodash/sampleSize';
-import * as fantastical from 'fantastical';
 import Column from './components/Column';
 import Row from './components/Row';
 import BlockButton from './components/BlockButton';
@@ -11,6 +10,7 @@ import getId from './utils/getId';
 import roles from './roles';
 import PlayerListItem from './components/PlayerListItem';
 import getAlignmentColor from './utils/getAlignmentColor';
+import getRandomRoles from './utils/getRandomRoles';
 
 export default function App() {
   const [players, setPlayers] = useState([]);
@@ -49,11 +49,26 @@ export default function App() {
         return;
       }
     }
-    const count = 6;
-    const playerRoles = sampleSize(roles, count);
+
+    const countResult = await SA.fire({
+      title: 'How many players?',
+      type: 'question',
+      input: 'number',
+      inputAttributes: {
+        step: 1
+      },
+      inputValue: 5
+    });
+
+    if (countResult.dismiss) {
+      return;
+    }
+
+    const count = +countResult.value;
+    const playerRoles = getRandomRoles(count);
     const newPlayers = playerRoles.map(role => ({
       id: getId(),
-      name: fantastical.species.human(),
+      name: '',
       role,
       statuses: [],
       dead: false
@@ -67,7 +82,7 @@ export default function App() {
       ...players,
       {
         id: getId(),
-        name: fantastical.species.human(),
+        name: '',
         role: null,
         statuses: [],
         dead: false
