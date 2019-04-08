@@ -273,12 +273,10 @@ const DarkBlockButton = styled(BlockButton)`
 function NightHelperDrawer({ players, onClose }) {
   const [playerIndex, setPlayerIndex] = useState(0);
   const sortedPlayers = players
-    .filter(player => roleOrder.includes(player.role))
+    .filter(player => !player.dead && roleOrder.includes(player.role))
     .sort(sortPlayersByRoleOrder);
   const player = sortedPlayers[playerIndex];
   const isLastPlayer = playerIndex >= sortedPlayers.length - 1;
-
-  console.log({ sortedPlayers });
 
   function handleNextClick() {
     setPlayerIndex(playerIndex + 1);
