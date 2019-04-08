@@ -187,6 +187,21 @@ export const outsiderRoles = roles.filter(
 export const minionRoles = roles.filter(role => role.alignment === 'Minion');
 export const demonRoles = roles.filter(role => role.alignment === 'Demon');
 
+export const roleOrder = [
+  getRoleByName('Poisoner'),
+  getRoleByName('Monk'),
+  getRoleByName('Undertaker'),
+  getRoleByName('Empath'),
+  getRoleByName('Fortune Teller'),
+  getRoleByName('Spy'),
+  getRoleByName('Imp'),
+  getRoleByName('Ravenkeeper')
+];
+
+function getRoleByName(name) {
+  return roles.find(role => role.name === name);
+}
+
 function getLightColor(index, length) {
   const hue = (360 * index) / length;
   const sat = 80;

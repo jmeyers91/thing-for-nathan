@@ -7,7 +7,7 @@ import Column from './components/Column';
 import Row from './components/Row';
 import BlockButton from './components/BlockButton';
 import getId from './utils/getId';
-import roles from './roles';
+import roles, { roleOrder } from './roles';
 import PlayerListItem from './components/PlayerListItem';
 import getAlignmentColor from './utils/getAlignmentColor';
 import getRandomRoles from './utils/getRandomRoles';
@@ -272,9 +272,13 @@ const DarkBlockButton = styled(BlockButton)`
 
 function NightHelperDrawer({ players, onClose }) {
   const [playerIndex, setPlayerIndex] = useState(0);
-  const sortedPlayers = players.sort(sortPlayersByRoleOrder);
+  const sortedPlayers = players
+    .filter(player => roleOrder.includes(player.role))
+    .sort(sortPlayersByRoleOrder);
   const player = sortedPlayers[playerIndex];
-  const isLastPlayer = playerIndex >= players.length - 1;
+  const isLastPlayer = playerIndex >= sortedPlayers.length - 1;
+
+  console.log({ sortedPlayers });
 
   function handleNextClick() {
     setPlayerIndex(playerIndex + 1);
@@ -283,7 +287,7 @@ function NightHelperDrawer({ players, onClose }) {
   return (
     <React.Fragment>
       {player && <h1 style={{ paddingTop: 10 }}>Wake up {player.name}</h1>}
-      {player && player.role && <RoleHelp hideName role={player.role} />}
+      {player && player.role && <RoleHelp role={player.role} />}
       <div style={{ flex: 1 }} />
       <DarkBlockButton
         onClick={isLastPlayer ? onClose : handleNextClick}
@@ -313,5 +317,5 @@ function RoleHelp({ role, hideName }) {
 }
 
 function sortPlayersByRoleOrder(a, b) {
-  return roles.indexOf(a.role) - roles.indexOf(b.role);
+  return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
 }
