@@ -1,3 +1,22 @@
+export const isBaron = role => role.name === 'Baron';
+export const isNotBaron = role => role.name !== 'Baron';
+
+export const isTownsfolk = role => role.alignment === 'Townsfolk';
+export const isNotTownsfolk = role => role.alignment !== 'Townsfolk';
+
+export const isMinion = role => role.alignment === 'Minion';
+export const isNotMinion = role => role.alignment !== 'Minion';
+
+export const isOutsider = role => role.alignment === 'Outsider';
+export const isNotOutsider = role => role.alignment !== 'Outsider';
+
+export const isDemon = role => role.alignment === 'Demon';
+export const isNotDemon = role => role.alignment !== 'Demon';
+
+export const findRoleByName = name => roleNameMap.get(name);
+export const isRoleInArray = (array, role) =>
+  array.some(other => other && other.name === role.name);
+
 const roles = [
   {
     name: 'Washerwoman',
@@ -176,31 +195,28 @@ const roles = [
   ...role
 }));
 
+const roleNameMap = roles.reduce((map, role) => {
+  map.set(role.name, role);
+  return map;
+}, new Map());
+
 export default roles;
 
-export const townsfolkRoles = roles.filter(
-  role => role.alignment === 'Townsfolk'
-);
-export const outsiderRoles = roles.filter(
-  role => role.alignment === 'Outsider'
-);
-export const minionRoles = roles.filter(role => role.alignment === 'Minion');
-export const demonRoles = roles.filter(role => role.alignment === 'Demon');
+export const townsfolkRoles = roles.filter(isTownsfolk);
+export const outsiderRoles = roles.filter(isOutsider);
+export const minionRoles = roles.filter(isMinion);
+export const demonRoles = roles.filter(isDemon);
 
 export const roleOrder = [
-  getRoleByName('Poisoner'),
-  getRoleByName('Monk'),
-  getRoleByName('Undertaker'),
-  getRoleByName('Empath'),
-  getRoleByName('Fortune Teller'),
-  getRoleByName('Spy'),
-  getRoleByName('Imp'),
-  getRoleByName('Ravenkeeper')
+  findRoleByName('Poisoner'),
+  findRoleByName('Monk'),
+  findRoleByName('Undertaker'),
+  findRoleByName('Empath'),
+  findRoleByName('Fortune Teller'),
+  findRoleByName('Spy'),
+  findRoleByName('Imp'),
+  findRoleByName('Ravenkeeper')
 ];
-
-function getRoleByName(name) {
-  return roles.find(role => role.name === name);
-}
 
 function getLightColor(index, length) {
   const hue = (360 * index) / length;
