@@ -1,18 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import debounce from 'lodash/debounce';
 import { FaTrash, FaDice, FaUserPlus, FaMoon } from 'react-icons/fa';
 import SA from 'sweetalert2';
 import Column from './components/Column';
 import Row from './components/Row';
 import BlockButton from './components/BlockButton';
 import getId from './utils/getId';
-import { roleOrder } from './roles';
+import roles, { roleOrder } from './roles';
 import PlayerListItem from './components/PlayerListItem';
 import getAlignmentColor from './utils/getAlignmentColor';
 import getRandomRoles from './utils/getRandomRoles';
 
+const localStorageKey = 'WEREWOLF_STATE';
+const initialState = loadInitialState();
+
+function loadInitialState() {
+  const initialStateString = localStorage.getItem(localStorageKey);
+  let initialState = { players: [] };
+
+  try {
+    Object.assign(initialState, JSON.parse(initialStateString));
+  } catch (error) {
+    console.error('Failed to load state', error);
+  }
+
+  for (const player of initialState.players) {
+    if (player.role) {
+      player.role = roles.find(other => other.id === player.role.id);
+    }
+  }
+
+  return initialState;
+}
+
+function saveState(state) {
+  console.time('Saved');
+  localStorage.setItem(localStorageKey, JSON.stringify(state));
+  console.timeEnd('Saved');
+}
+
+const debouncedSaveState = debounce(saveState, 500);
+
 export default function App() {
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState(initialState.players || []);
   const [changed, setChanged] = useState(false);
   const [helpRole, setHelpRole] = useState(null);
   const [showNightHelper, setShowNightHelper] = useState(false);
@@ -23,6 +54,10 @@ export default function App() {
     players.every(player => {
       return !!(player.role && player.name.length > 0);
     });
+
+  useEffect(() => {
+    debouncedSaveState({ players });
+  }, [players]);
 
   async function handleResetClick() {
     const confirmResult = await SA.fire({
