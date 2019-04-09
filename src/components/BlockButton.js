@@ -16,4 +16,5 @@ export default styled('button')`
   font-size: inherit;
   opacity: ${props => (props.fade || props.disabled ? 0.5 : 1)};
   transition: opacity 0.2s;
+  flex-shrink: 0;
 `;
