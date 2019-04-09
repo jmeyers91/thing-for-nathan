@@ -3,10 +3,10 @@ import styled, { keyframes } from 'styled-components';
 import debounce from 'lodash/debounce';
 import { FaTrash, FaDice, FaUserPlus, FaMoon } from 'react-icons/fa';
 import SA from 'sweetalert2';
+import nanoid from 'nanoid';
 import Column from './components/Column';
 import Row from './components/Row';
 import BlockButton from './components/BlockButton';
-import getId from './utils/getId';
 import roles, { roleOrder } from './roles';
 import PlayerListItem from './components/PlayerListItem';
 import getAlignmentColor from './utils/getAlignmentColor';
@@ -35,9 +35,7 @@ function loadInitialState() {
 }
 
 function saveState(state) {
-  console.time('Saved');
   localStorage.setItem(localStorageKey, JSON.stringify(state));
-  console.timeEnd('Saved');
 }
 
 const debouncedSaveState = debounce(saveState, 500);
@@ -101,7 +99,7 @@ export default function App() {
     const count = +countResult.value;
     const playerRoles = getRandomRoles(count);
     const newPlayers = playerRoles.map(role => ({
-      id: getId(),
+      id: nanoid(),
       name: '',
       role,
       statuses: [],
@@ -115,7 +113,7 @@ export default function App() {
     setPlayers([
       ...players,
       {
-        id: getId(),
+        id: nanoid(),
         name: '',
         role: null,
         statuses: [],
