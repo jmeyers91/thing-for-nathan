@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
-import debounce from 'lodash/debounce';
-import { FaTrash, FaDice, FaUserPlus, FaMoon } from 'react-icons/fa';
-import SA from 'sweetalert2';
-import nanoid from 'nanoid';
-import Column from './components/Column';
-import Row from './components/Row';
-import BlockButton from './components/BlockButton';
-import roles, { roleOrder } from './roles';
-import PlayerListItem from './components/PlayerListItem';
-import getAlignmentColor from './utils/getAlignmentColor';
-import getRandomRoles from './utils/getRandomRoles';
+import React, { useState, useEffect } from "react";
+import styled, { keyframes } from "styled-components";
+import debounce from "lodash/debounce";
+import { FaTrash, FaDice, FaUserPlus, FaMoon } from "react-icons/fa";
+import SA from "sweetalert2";
+import nanoid from "nanoid";
+import Column from "./components/Column";
+import Row from "./components/Row";
+import BlockButton from "./components/BlockButton";
+import roles, { roleOrder } from "./roles";
+import PlayerListItem from "./components/PlayerListItem";
+import getAlignmentColor from "./utils/getAlignmentColor";
+import getRandomRoles from "./utils/getRandomRoles";
 
-const localStorageKey = 'WEREWOLF_STATE';
+const localStorageKey = "WEREWOLF_STATE";
 const initialState = loadInitialState();
 
 function loadInitialState() {
@@ -22,12 +22,12 @@ function loadInitialState() {
   try {
     Object.assign(initialState, JSON.parse(initialStateString));
   } catch (error) {
-    console.error('Failed to load state', error);
+    console.error("Failed to load state", error);
   }
 
   for (const player of initialState.players) {
     if (player.role) {
-      player.role = roles.find(other => other.id === player.role.id);
+      player.role = roles.find((other) => other.id === player.role.id);
     }
   }
 
@@ -49,7 +49,7 @@ export default function App() {
   const helpDrawerOpen = !!helpRole || showNightHelper;
   const canUseNightHelper =
     players.length > 0 &&
-    players.every(player => {
+    players.every((player) => {
       return !!(player.role && player.name.length > 0);
     });
 
@@ -59,9 +59,9 @@ export default function App() {
 
   async function handleResetClick() {
     const confirmResult = await SA.fire({
-      title: 'Are you sure?',
-      text: 'This will delete all players.',
-      showCancelButton: true
+      title: "Are you sure?",
+      text: "This will delete all players.",
+      showCancelButton: true,
     });
 
     if (confirmResult.value) {
@@ -73,38 +73,23 @@ export default function App() {
   async function handleRandomizeClick() {
     if (changed) {
       const confirmResult = await SA.fire({
-        title: 'Are you sure?',
-        text: 'This will clear all your changes.',
-        showCancelButton: true
+        title: "Are you sure?",
+        text: "This will clear all your changes.",
+        showCancelButton: true,
       });
       if (!confirmResult.value) {
         return;
       }
     }
 
-    const countResult = await SA.fire({
-      title: 'How many players?',
-      type: 'question',
-      input: 'number',
-      inputAttributes: {
-        step: 1
-      },
-      inputValue: 5
-    });
-
-    if (countResult.dismiss) {
-      return;
-    }
-
-    const count = +countResult.value;
-    const playerRoles = getRandomRoles(count);
-    const newPlayers = playerRoles.map(role => ({
-      id: nanoid(),
-      name: '',
-      role,
+    const playerRoles = getRandomRoles(players.length);
+    const newPlayers = players.map((player, i) => ({
+      ...player,
+      role: playerRoles[i],
+      dead: false,
       statuses: [],
-      dead: false
     }));
+
     setPlayers(newPlayers);
     setChanged(false);
   }
@@ -114,19 +99,19 @@ export default function App() {
       ...players,
       {
         id: nanoid(),
-        name: '',
+        name: "",
         role: null,
         statuses: [],
-        dead: false
-      }
+        dead: false,
+      },
     ]);
   }
 
   function handlePlayerChange(player) {
-    if (!changed) {
-      setChanged(true);
-    }
-    setPlayers(players.map(other => (other.id === player.id ? player : other)));
+    setChanged(true);
+    setPlayers(
+      players.map((other) => (other.id === player.id ? player : other))
+    );
   }
 
   async function handlePlayerDelete(player) {
@@ -134,14 +119,14 @@ export default function App() {
       setChanged(true);
     }
     const confirmResult = await SA.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: `Delete player ${player.name}?`,
-      showCancelButton: true
+      showCancelButton: true,
     });
     if (!confirmResult.value) {
       return;
     }
-    setPlayers(players.filter(other => other.id !== player.id));
+    setPlayers(players.filter((other) => other.id !== player.id));
   }
 
   function handleNightClick() {
@@ -164,7 +149,7 @@ export default function App() {
       return (
         <HelpDrawer open>
           <HelpDrawerCloseButton onClick={closeHelpDrawer}>
-            {'\u00D7'}
+            {"\u00D7"}
           </HelpDrawerCloseButton>
           <RoleHelp role={helpRole} />
         </HelpDrawer>
@@ -175,7 +160,7 @@ export default function App() {
       return (
         <HelpDrawer open>
           <HelpDrawerCloseButton onClick={closeHelpDrawer}>
-            {'\u00D7'}
+            {"\u00D7"}
           </HelpDrawerCloseButton>
           <NightHelperDrawer players={players} onClose={closeHelpDrawer} />
         </HelpDrawer>
@@ -202,7 +187,7 @@ export default function App() {
         </BlockButton>
       </Header>
       <Content>
-        {players.map(player => (
+        {players.map((player) => (
           <PlayerListItem
             key={player.id}
             player={player}
@@ -251,7 +236,7 @@ const HelpDrawer = styled(Column)`
   box-shadow: 3px 10px rgba(0, 0, 0, 0.3);
   z-index: 3;
   transition: transform 0.4s;
-  transform: ${props =>
+  transform: ${(props) =>
     props.open ? `translate(0, 0)` : `translate(-100%, 0)`};
 
   h1 {
@@ -259,7 +244,7 @@ const HelpDrawer = styled(Column)`
   }
 `;
 
-const HelpDrawerOverlay = styled('div')`
+const HelpDrawerOverlay = styled("div")`
   position: fixed;
   left: 0;
   right: 0;
@@ -292,7 +277,7 @@ const HelpDrawerCloseButton = styled(BlockButton)`
 `;
 
 const DarkBlockButton = styled(BlockButton)`
-  background-color: ${props => (props.highlighted ? '#559' : '#555')};
+  background-color: ${(props) => (props.highlighted ? "#559" : "#555")};
   transition: background-color 0.2s;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -305,7 +290,7 @@ const DarkBlockButton = styled(BlockButton)`
 function NightHelperDrawer({ players, onClose }) {
   const [playerIndex, setPlayerIndex] = useState(0);
   const sortedPlayers = players
-    .filter(player => !player.dead && roleOrder.includes(player.role))
+    .filter((player) => !player.dead && roleOrder.includes(player.role))
     .sort(sortPlayersByRoleOrder);
   const player = sortedPlayers[playerIndex];
   const isLastPlayer = playerIndex >= sortedPlayers.length - 1;
@@ -324,7 +309,7 @@ function NightHelperDrawer({ players, onClose }) {
         highlighted={isLastPlayer}
         style={{ marginBottom: 50 }}
       >
-        {isLastPlayer ? 'End Night' : 'Next Player'}
+        {isLastPlayer ? "End Night" : "Next Player"}
       </DarkBlockButton>
     </React.Fragment>
   );
@@ -333,7 +318,7 @@ function NightHelperDrawer({ players, onClose }) {
 function RoleHelp({ role, hideName }) {
   return (
     <React.Fragment>
-      {hideName ? '' : <h1 style={{ color: role.lightColor }}>{role.name}</h1>}
+      {hideName ? "" : <h1 style={{ color: role.lightColor }}>{role.name}</h1>}
       <h2>Alignment</h2>
       <p style={{ color: getAlignmentColor(role.alignment) }}>
         {role.alignment}
